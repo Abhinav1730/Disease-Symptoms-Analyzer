@@ -142,6 +142,7 @@ const SymptomsForm =({ onsubmit }) => {
         <div className='text-center pt-4'>
           <button
             type='submit'
+            onClick={handleSubmit}
             className='bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-xl text-lg font-semibold transition-all duration-200'
           >
             🔍 Analyze
