@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import { allSymptoms } from '../services/Service'
+import axios from 'axios'
 
-const SymptomsForm = ({ onsubmit }) => {
+const SymptomsForm =({ onsubmit }) => {
 
   const [name, setName] = useState("")
   const [age, setAge] = useState("")
@@ -24,21 +25,25 @@ const SymptomsForm = ({ onsubmit }) => {
     setSelectedSymptoms(selectedSymptoms.filter(s => s !== symptom))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async(e) => {
     e.preventDefault()
     if (!name || !age || !gender || selectedSymptoms.length === 0) {
       alert("Please fill all the fields.")
       return
     }
-
     const data = {
       name,
       age,
       gender,
       symptoms: selectedSymptoms
     }
-
     onsubmit(data) // pass to parent component
+    try {
+      const response = await axios.post("http://127.0.0.1:5000/analyze",data)
+      console.log("Result",response.data)
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   return (
