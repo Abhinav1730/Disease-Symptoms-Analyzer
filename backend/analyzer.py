@@ -6,6 +6,7 @@ import uuid
 
 
 def analyzeSymptoms(userSymptoms):
+    print("Symptoms Recieved : ",userSymptoms)
     df = pd.read_csv("data/disease_dataset_info.csv")
     userSymptoms = set([s.strip().lower() for s in userSymptoms])
 
@@ -24,7 +25,7 @@ def analyzeSymptoms(userSymptoms):
 
     # creating plot
     plt.figure(figsize=(8, 5))
-    plt.barh(list(topScores.keys()), list(scores.values()), color="skyblue")
+    plt.barh(list(topScores.keys()), list(topScores.values()), color="skyblue")
     plt.xlabel("Match Score")
     plt.ylabel("Top Disease Matches")
     filename = f"{uuid.uuid4().hex}.png"

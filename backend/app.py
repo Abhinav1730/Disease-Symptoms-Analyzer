@@ -3,7 +3,7 @@ from flask_cors import CORS
 from analyzer import analyzeSymptoms
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 
 @app.route("/analyze", methods=["POST"])
