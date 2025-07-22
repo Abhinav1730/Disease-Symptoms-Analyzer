@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { allSymptoms } from '../services/Service'
 import axios from 'axios'
 
-const SymptomsForm =({ onsubmit }) => {
+const SymptomsForm =({ onSubmit }) => {
 
   const [name, setName] = useState("")
   const [age, setAge] = useState("")
@@ -37,7 +37,7 @@ const SymptomsForm =({ onsubmit }) => {
       gender,
       symptoms: selectedSymptoms
     }
-    onsubmit(data) // pass to parent component
+    onSubmit(data) // pass to parent component
     try {
       const response = await axios.post("http://127.0.0.1:5000/analyze",data)
       console.log("Result",response.data)
