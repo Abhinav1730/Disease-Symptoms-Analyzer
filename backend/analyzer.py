@@ -12,7 +12,9 @@ def analyzeSymptoms(userSymptoms):
     scores = {}
     for _, row in df.iterrows():
         disease = row["disease"]
-        diseaseSymptoms = set(row["symptoms"].split(","))
+        diseaseSymptoms = set(
+            [sym.strip().lower() for sym in row["symptoms"].split(",")]
+        )
         matchCount = len(userSymptoms & diseaseSymptoms)
         total = len(diseaseSymptoms)
         score = matchCount / total if total else 0
