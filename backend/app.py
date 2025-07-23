@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import requests
 from analyzer import analyzeSymptoms
@@ -9,8 +9,11 @@ import ast
 
 load_dotenv()
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/static', static_folder='static')
 CORS(app)
+
+# Ensure the plots folder exists
+os.makedirs(os.path.join(app.static_folder, "plots"), exist_ok=True)
 
 
 @app.route("/analyze", methods=["POST"])
@@ -29,15 +32,19 @@ def analyze():
     return jsonify({"results": results, "plotUrl": plot_url})
 
 
-
 @app.route("/plot/<filename>")
-def getPlot(filename):
-    full_path = os.path.join(app.root_path, "static", "plots", filename)
-    return send_file(full_path, mimetype="image/png")
+def get_plot(filename):
+    plot_dir = os.path.join(app.static_folder, "plots")
+    file_path = os.path.join(plot_dir, filename)
+
+    if not os.path.isfile(file_path):
+        return jsonify({"error": "Plot not found"}), 404
+
+    return send_from_directory(plot_dir, filename, mimetype="image/png")
 
 
 @app.route("/generate_advice", methods=["POST"])
-def generateAdvice():
+def generate_advice():
     data = request.get_json()
     diseases = data.get("diseases", [])
 
@@ -63,28 +70,25 @@ def generateAdvice():
             headers={
                 "Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}",
                 "Content-Type": "application/json",
-                "HTTP-Referer": "http://localhost:5173",  # Optional for OpenRouter
+                "HTTP-Referer": "https://your-frontend-url.vercel.app",  # Update to actual deployed Vercel domain
                 "X-Title": "DiseaseSymptomMapper",
             },
-            data=json.dumps(
-                {
-                    "model": "deepseek/deepseek-r1-0528:free",
-                    "messages": [{"role": "user", "content": prompt}],
-                }
-            ),
+            data=json.dumps({
+                "model": "deepseek/deepseek-r1-0528:free",
+                "messages": [{"role": "user", "content": prompt}]
+            }),
         )
 
         result = response.json()
         advice_text = result["choices"][0]["message"]["content"]
 
-        # Try parsing as JSON string
         try:
             advice_json = json.loads(advice_text)
         except Exception:
             try:
                 advice_json = ast.literal_eval(advice_text)
             except Exception:
-                print("Parsing failed, returning raw text")
+                print("Advice parsing failed, returning raw text")
                 return jsonify({"advice": {"raw": advice_text}})
 
         return jsonify({"advice": advice_json})
