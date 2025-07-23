@@ -23,7 +23,7 @@ def analyze():
 
     results, plotPath = analyzeSymptoms(symptoms)
     return jsonify(
-        {"results": results, "plotUrl": f"/plot/{plotPath}" if plotPath else None}
+        {"results": results, "plotUrl": f"{os.getenv('BASE_URL')}/plot/{plotPath}" if plotPath else None}
     )
 
 
