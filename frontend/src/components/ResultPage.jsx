@@ -88,7 +88,7 @@ const ResultPage = ({ userData, results, plotUrl, onReset }) => {
           </h3>
           <div className="flex justify-center items-center">
             <img
-              src={`https://disease-symptoms-analyzer-backend-ba0u.onrender.com${plotUrl}`}
+              src={plotUrl}
               alt="Disease match chart"
               className="w-full max-w-3xl h-auto max-h-[400px] object-contain rounded-lg shadow-lg border border-orange-300"
             />
