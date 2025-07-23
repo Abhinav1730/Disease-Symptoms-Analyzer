@@ -10,7 +10,7 @@ const ResultPage = ({ userData, results, plotUrl, onReset }) => {
     setLoadingAdvice(true);
     try {
       const response = await axios.post(
-        "http://127.0.0.1:5000/generate_advice",
+        "https://disease-symptoms-analyzer-backend-ba0u.onrender.com/generate_advice",
         {
           diseases: Object.keys(results),
         }
@@ -88,7 +88,7 @@ const ResultPage = ({ userData, results, plotUrl, onReset }) => {
           </h3>
           <div className="flex justify-center items-center">
             <img
-              src={`http://127.0.0.1:5000${plotUrl}`}
+              src={`https://disease-symptoms-analyzer-backend-ba0u.onrender.com${plotUrl}`}
               alt="Disease match chart"
               className="w-full max-w-3xl h-auto max-h-[400px] object-contain rounded-lg shadow-lg border border-orange-300"
             />
