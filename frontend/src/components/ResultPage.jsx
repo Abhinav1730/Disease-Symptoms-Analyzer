@@ -15,7 +15,22 @@ const ResultPage = ({ userData, results, plotUrl, onReset }) => {
           diseases: Object.keys(results),
         }
       );
-      setAdvice(response.data); // Expected: { disease1: {solution: "...", precautions: "..."}, ... }
+
+      let rawAdvice = response.data.advice;
+      //console.log("Result Object:", rawAdvice);
+
+      if (typeof rawAdvice === "object" && rawAdvice.raw) {
+        rawAdvice = rawAdvice.raw;
+      }
+
+      rawAdvice = rawAdvice
+        .replace(/^```json\s*/i, "")
+        .replace(/```$/, "")
+        .trim();
+
+      // Attempt to parse the response (fix common format issues)
+      const parsed = JSON.parse(rawAdvice); // parse as JSON
+      setAdvice(parsed);
     } catch (error) {
       console.error("Error generating advice:", error);
       alert("❌ Failed to generate AI advice. Please try again.");
@@ -103,11 +118,11 @@ const ResultPage = ({ userData, results, plotUrl, onReset }) => {
               <p className="font-semibold text-orange-300">{disease}</p>
               <p>
                 <span className="text-orange-400">Precautions:</span>{" "}
-                {info.precautions}
+                {info.precautions || "N/A"}
               </p>
               <p>
                 <span className="text-orange-400">Solutions:</span>{" "}
-                {info.solution}
+                {info.solution || "N/A"}
               </p>
             </div>
           ))}
