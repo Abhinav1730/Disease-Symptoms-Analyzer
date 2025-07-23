@@ -22,9 +22,12 @@ def analyze():
         return jsonify({"error": "No Symptoms Provided"}), 400
 
     results, plotPath = analyzeSymptoms(symptoms)
-    return jsonify(
-        {"results": results, "plotUrl": f"{os.getenv('BASE_URL')}/plot/{plotPath}" if plotPath else None}
-    )
+
+    base_url = os.getenv("BASE_URL") or request.host_url.rstrip("/")
+    plot_url = f"{base_url}/plot/{plotPath}" if plotPath else None
+
+    return jsonify({"results": results, "plotUrl": plot_url})
+
 
 
 @app.route("/plot/<filename>")
