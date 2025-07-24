@@ -18,10 +18,12 @@ const ResultPage = ({ userData, results, plotBase64, onReset }) => {
 
       let rawAdvice = response.data.advice;
 
+      // If it's wrapped in `raw` object, extract it
       if (typeof rawAdvice === "object" && rawAdvice.raw) {
         rawAdvice = rawAdvice.raw;
       }
 
+      // Clean up markdown-style code block if present
       rawAdvice = rawAdvice
         .replace(/^```json\s*/i, "")
         .replace(/```$/, "")
@@ -29,7 +31,6 @@ const ResultPage = ({ userData, results, plotBase64, onReset }) => {
 
       const parsed = JSON.parse(rawAdvice);
       setAdvice(parsed);
-      // We do not set plotBase64 here because it's already passed via props
     } catch (error) {
       console.error("Error generating advice:", error);
       alert("❌ Failed to generate AI advice. Please try again.");
@@ -44,8 +45,8 @@ const ResultPage = ({ userData, results, plotBase64, onReset }) => {
         🩺 Analysis Results
       </h2>
 
-      {/* User Details */}
-      <div className="text-sm sm:text-base text-orange-200 text-center space-y-1 mb-4 sm:mb-6">
+      {/* User Info */}
+      <div className="text-sm sm:text-base text-orange-200 text-center space-y-1 mb-6">
         <p>
           <span className="font-semibold text-orange-400">Name:</span>{" "}
           {_.capitalize(userData.name)}
@@ -64,7 +65,7 @@ const ResultPage = ({ userData, results, plotBase64, onReset }) => {
         </p>
       </div>
 
-      {/* Results List */}
+      {/* Disease Match Results */}
       <div className="mb-6 px-2 sm:px-4">
         <h3 className="text-lg sm:text-xl font-semibold text-orange-400 mb-3">
           Top Disease Matches:
@@ -106,7 +107,7 @@ const ResultPage = ({ userData, results, plotBase64, onReset }) => {
         </button>
       </div>
 
-      {/* AI Advice Display */}
+      {/* AI Advice Output */}
       {Object.keys(advice).length > 0 && (
         <div className="bg-gray-900 border border-orange-300 rounded-xl p-4 sm:p-6 mb-6 space-y-4">
           <h3 className="text-lg sm:text-xl font-semibold text-orange-400 mb-2">
