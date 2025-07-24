@@ -34,7 +34,8 @@ def analyzeSymptoms(userSymptoms):
     if not topScores:
         return {}, None
 
-    os.makedirs("static/plots", exist_ok=True)
+    # ✅ Use /tmp for Render-safe storage
+    os.makedirs("/tmp", exist_ok=True)
 
     # Plotting
     diseases = list(topScores.keys())
@@ -49,7 +50,6 @@ def analyzeSymptoms(userSymptoms):
     ax.tick_params(axis="y", colors="black")
     ax.invert_yaxis()
 
-    # Add values to bars
     for bar in bars:
         width = bar.get_width()
         ax.text(
@@ -64,7 +64,7 @@ def analyzeSymptoms(userSymptoms):
     plt.tight_layout(pad=2)
 
     filename = f"{uuid.uuid4().hex}.png"
-    path = os.path.join("static/plots", filename)
+    path = os.path.join("/tmp", filename)
     plt.savefig(path, bbox_inches="tight", facecolor="white")
     plt.close()
 

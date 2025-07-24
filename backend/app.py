@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 import requests
 from analyzer import analyzeSymptoms
@@ -9,11 +9,8 @@ import ast
 
 load_dotenv()
 
-app = Flask(__name__, static_url_path='/static', static_folder='static')
+app = Flask(__name__)
 CORS(app)
-
-# Ensure the plots folder exists
-os.makedirs(os.path.join(app.static_folder, "plots"), exist_ok=True)
 
 
 @app.route("/analyze", methods=["POST"])
@@ -24,23 +21,22 @@ def analyze():
     if not symptoms:
         return jsonify({"error": "No Symptoms Provided"}), 400
 
-    results, plotPath = analyzeSymptoms(symptoms)
+    results, plot_filename = analyzeSymptoms(symptoms)
 
     base_url = os.getenv("BASE_URL") or request.host_url.rstrip("/")
-    plot_url = f"{base_url}/plot/{plotPath}" if plotPath else None
+    plot_url = f"{base_url}/plot/{plot_filename}" if plot_filename else None
 
     return jsonify({"results": results, "plotUrl": plot_url})
 
 
 @app.route("/plot/<filename>")
 def get_plot(filename):
-    plot_dir = os.path.join(app.static_folder, "plots")
-    file_path = os.path.join(plot_dir, filename)
+    file_path = os.path.join("/tmp", filename)
 
     if not os.path.isfile(file_path):
         return jsonify({"error": "Plot not found"}), 404
 
-    return send_from_directory(plot_dir, filename, mimetype="image/png")
+    return send_file(file_path, mimetype="image/png")
 
 
 @app.route("/generate_advice", methods=["POST"])
@@ -70,7 +66,7 @@ def generate_advice():
             headers={
                 "Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}",
                 "Content-Type": "application/json",
-                "HTTP-Referer": "https://your-frontend-url.vercel.app",  # Update to actual deployed Vercel domain
+                "HTTP-Referer": "https://your-frontend-url.vercel.app",  # Replace with your actual Vercel frontend URL
                 "X-Title": "DiseaseSymptomMapper",
             },
             data=json.dumps({
