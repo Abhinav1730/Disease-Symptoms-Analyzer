@@ -12,7 +12,7 @@ load_dotenv()
 
 # Initialize Flask app
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all origins (good for Vercel frontend)
+CORS(app, resources={r"/*": {"origins": "https://disease-symptoms-analyzer.vercel.app"}})  # Enable CORS for all origins (good for Vercel frontend)
 
 # ------------------ Analyze Symptoms ------------------ #
 @app.route("/analyze", methods=["POST"])
