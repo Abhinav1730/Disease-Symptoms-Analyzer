@@ -1,17 +1,17 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
 import json
 import ast
 import requests
 from dotenv import load_dotenv
-from analyzer import analyzeSymptoms
+from analyzer import analyzeSymptoms  # Now returns base64-encoded image
 
 # Load environment variables
 load_dotenv()
 
-# Create Flask app and allow static file serving
-app = Flask(__name__, static_folder="static")
+# Create Flask app
+app = Flask(__name__)
 CORS(app)
 
 # ------------------ /analyze Endpoint ------------------ #
@@ -23,27 +23,13 @@ def analyze():
     if not symptoms:
         return jsonify({"error": "No symptoms provided"}), 400
 
-    # Ensure plots folder exists before calling analyzeSymptoms
-    os.makedirs(os.path.join(app.static_folder, "plots"), exist_ok=True)
-
-    results, plot_filename = analyzeSymptoms(symptoms)
-
-    # Use provided BASE_URL or fallback to request host
-    base_url = os.getenv("BASE_URL") or request.host_url.rstrip("/")
-    plot_url = f"{base_url}/plot/{plot_filename}" if plot_filename else None
+    # Call analyzer
+    results, plot_base64 = analyzeSymptoms(symptoms)
 
     return jsonify({
         "results": results,
-        "plotUrl": plot_url
+        "plotBase64": f"data:image/png;base64,{plot_base64}" if plot_base64 else None
     })
-
-# ------------------ /plot/<filename> Image Serving ------------------ #
-@app.route("/plot/<filename>")
-def get_plot(filename):
-    plots_dir = os.path.join(app.root_path, "static","plots")
-    if not os.path.isfile(os.path.join(plots_dir, filename)):
-        return jsonify({"error": "Plot not found"}), 404
-    return send_from_directory(plots_dir, filename)
 
 # ------------------ /generate_advice Endpoint ------------------ #
 @app.route("/generate_advice", methods=["POST"])

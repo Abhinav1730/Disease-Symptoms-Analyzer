@@ -2,17 +2,14 @@ import pandas as pd
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-import os
-import uuid
+from io import BytesIO
+import base64
 
-matplotlib.use("Agg")  # Ensures plot works in non-GUI environments
+matplotlib.use("Agg")
 
 def analyzeSymptoms(userSymptoms):
     print("Symptoms Received:", userSymptoms)
-
-    # Load disease dataset
     df = pd.read_csv("data/disease_dataset_info.csv")
-
     userSymptoms = set(s.strip().lower() for s in userSymptoms)
 
     scores = {}
@@ -34,15 +31,6 @@ def analyzeSymptoms(userSymptoms):
     if not topScores:
         return {}, None
 
-    # Save plot in static/plots (relative to root)
-    root_dir = os.path.dirname(os.path.abspath(__file__))  # Get app root
-    plot_dir = os.path.join(root_dir, "static", "plots")
-    os.makedirs(plot_dir, exist_ok=True)
-
-    filename = f"{uuid.uuid4().hex}.png"
-    path = os.path.join(plot_dir, filename)
-
-    # Plot
     diseases = list(topScores.keys())
     values = list(topScores.values())
 
@@ -57,10 +45,21 @@ def analyzeSymptoms(userSymptoms):
 
     for bar in bars:
         width = bar.get_width()
-        ax.text(width + 0.01, bar.get_y() + bar.get_height() / 2, f"{width:.2f}", va="center", fontsize=10, color="black")
+        ax.text(
+            width + 0.01,
+            bar.get_y() + bar.get_height() / 2,
+            f"{width:.2f}",
+            va="center",
+            fontsize=10,
+            color="black",
+        )
 
+    # Convert plot to base64
+    buffer = BytesIO()
     plt.tight_layout(pad=2)
-    plt.savefig(path, bbox_inches="tight", facecolor="white")
+    plt.savefig(buffer, format="png", bbox_inches="tight", facecolor="white")
     plt.close()
+    buffer.seek(0)
+    image_base64 = base64.b64encode(buffer.read()).decode("utf-8")
 
-    return topScores, filename
+    return topScores, image_base64

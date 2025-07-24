@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import _ from "lodash";
 import axios from "axios";
 
-const ResultPage = ({ userData, results, plotUrl, onReset }) => {
+const ResultPage = ({ userData, results, plotBase64, onReset }) => {
   const [advice, setAdvice] = useState({});
   const [loadingAdvice, setLoadingAdvice] = useState(false);
 
@@ -17,7 +17,6 @@ const ResultPage = ({ userData, results, plotUrl, onReset }) => {
       );
 
       let rawAdvice = response.data.advice;
-      //console.log("Result Object:", rawAdvice);
 
       if (typeof rawAdvice === "object" && rawAdvice.raw) {
         rawAdvice = rawAdvice.raw;
@@ -28,9 +27,9 @@ const ResultPage = ({ userData, results, plotUrl, onReset }) => {
         .replace(/```$/, "")
         .trim();
 
-      // Attempt to parse the response (fix common format issues)
-      const parsed = JSON.parse(rawAdvice); // parse as JSON
+      const parsed = JSON.parse(rawAdvice);
       setAdvice(parsed);
+      // We do not set plotBase64 here because it's already passed via props
     } catch (error) {
       console.error("Error generating advice:", error);
       alert("❌ Failed to generate AI advice. Please try again.");
@@ -81,14 +80,14 @@ const ResultPage = ({ userData, results, plotUrl, onReset }) => {
       </div>
 
       {/* Plot Image */}
-      {plotUrl && (
+      {plotBase64 && (
         <div className="mb-8 px-2 sm:px-4">
           <h3 className="text-lg sm:text-xl font-semibold text-orange-400 mb-3">
             Visual Analysis:
           </h3>
           <div className="flex justify-center items-center">
             <img
-              src={plotUrl}
+              src={plotBase64}
               alt="Disease match chart"
               className="w-full max-w-3xl h-auto max-h-[400px] object-contain rounded-lg shadow-lg border border-orange-300"
             />
