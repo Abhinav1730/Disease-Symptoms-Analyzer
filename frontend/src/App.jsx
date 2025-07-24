@@ -6,7 +6,7 @@ import { useState } from "react";
 
 function App() {
   const [results, setResults] = useState(null);
-  const [plotUrl, setPlotUrl] = useState(null);
+  const [plotBase64, setPlotBase64] = useState(null); // changed from plotUrl
   const [userData, setUserData] = useState(null);
 
   const handleSubmit = async (formData) => {
@@ -15,7 +15,7 @@ function App() {
         symptoms: formData.symptoms,
       });
       setResults(res.data.results);
-      setPlotUrl(res.data.plotUrl);
+      setPlotBase64(res.data.plotUrl);
       setUserData(formData);
     } catch (error) {
       console.error("Error analyzing symptoms:", error);
@@ -25,7 +25,7 @@ function App() {
 
   const handleReset = () => {
     setResults(null);
-    setPlotUrl(null);
+    setPlotBase64(null);
     setUserData(null);
   };
 
@@ -42,7 +42,7 @@ function App() {
             <ResultPage
               userData={userData}
               results={results}
-              plotUrl={plotUrl}
+              plotBase64={plotBase64}
               onReset={handleReset}
             />
           )}
