@@ -88,13 +88,12 @@ const ResultPage = ({ userData, results, plotBase64, onReset }) => {
           </h3>
           <div className="flex justify-center items-center">
             <img
-              src={`${plotBase64}`}
+              src={plotBase64}
               alt="Disease match chart"
               className="w-full max-w-3xl h-auto max-h-[400px] object-contain rounded-lg shadow-lg border border-orange-300"
               onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = "";
-                console.error("Failed to load base64 image.");
+                console.error("Base64 image failed to load.");
+                e.target.style.display = "none";
               }}
             />
           </div>
