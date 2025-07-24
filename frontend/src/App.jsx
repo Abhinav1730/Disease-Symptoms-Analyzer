@@ -6,7 +6,7 @@ import { useState } from "react";
 
 function App() {
   const [results, setResults] = useState(null);
-  const [plotBase64, setPlotBase64] = useState(null); // changed from plotUrl
+  const [plotBase64, setPlotBase64] = useState(null);  // ✅ This must match
   const [userData, setUserData] = useState(null);
 
   const handleSubmit = async (formData) => {
@@ -14,11 +14,13 @@ function App() {
       const res = await axios.post("http://127.0.0.1:5000/analyze", {
         symptoms: formData.symptoms,
       });
+
+      console.log("✅ Full Result from backend:", res.data);
       setResults(res.data.results);
-      setPlotBase64(res.data.plotUrl);
+      setPlotBase64(res.data.plotBase64); // ✅ MUST MATCH KEY FROM BACKEND
       setUserData(formData);
     } catch (error) {
-      console.error("Error analyzing symptoms:", error);
+      console.error("❌ Error analyzing symptoms:", error);
       alert("There was a problem analyzing your symptoms. Please try again.");
     }
   };
@@ -42,7 +44,7 @@ function App() {
             <ResultPage
               userData={userData}
               results={results}
-              plotBase64={plotBase64}
+              plotBase64={plotBase64} // ✅ Make sure you're passing this
               onReset={handleReset}
             />
           )}

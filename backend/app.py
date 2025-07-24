@@ -5,33 +5,42 @@ import json
 import ast
 import requests
 from dotenv import load_dotenv
-from analyzer import analyzeSymptoms  # Now returns base64-encoded image
+from analyzer import analyzeSymptoms  # This must return: results_dict, base64_plot_string
 
-# Load environment variables
+# Load environment variables from .env
 load_dotenv()
 
-# Create Flask app
+# Initialize Flask app
 app = Flask(__name__)
-CORS(app)
+CORS(app)  # Enable CORS for all origins (good for Vercel frontend)
 
-# ------------------ /analyze Endpoint ------------------ #
+# ------------------ Analyze Symptoms ------------------ #
 @app.route("/analyze", methods=["POST"])
 def analyze():
+    if not request.is_json:
+        return jsonify({"error": "Invalid content type, expected JSON"}), 400
+
     data = request.get_json()
     symptoms = data.get("symptoms", [])
 
     if not symptoms:
         return jsonify({"error": "No symptoms provided"}), 400
 
-    # Call analyzer
-    results, plot_base64 = analyzeSymptoms(symptoms)
+    try:
+        # Call your analyzer function
+        results, plot_base64 = analyzeSymptoms(symptoms)
 
-    return jsonify({
-        "results": results,
-        "plotBase64": f"data:image/png;base64,{plot_base64}" if plot_base64 else None
-    })
+        # Response with results and base64 image string
+        return jsonify({
+            "results": results,
+            "plotBase64": f"data:image/png;base64,{plot_base64}" if plot_base64 else None
+        })
 
-# ------------------ /generate_advice Endpoint ------------------ #
+    except Exception as e:
+        print("Error in analyzer:", str(e))
+        return jsonify({"error": "Something went wrong during analysis"}), 500
+
+# ------------------ Generate Advice ------------------ #
 @app.route("/generate_advice", methods=["POST"])
 def generate_advice():
     data = request.get_json()
@@ -40,6 +49,7 @@ def generate_advice():
     if not diseases:
         return jsonify({"error": "No diseases provided"}), 400
 
+    # Prompt for AI API
     prompt = (
         "Provide short but clear precautions and treatment solutions for each of the following diseases "
         "in the following JSON format (use double quotes for valid JSON):\n\n"
@@ -71,6 +81,7 @@ def generate_advice():
         result = response.json()
         advice_text = result["choices"][0]["message"]["content"]
 
+        # Try parsing the returned advice
         try:
             advice_json = json.loads(advice_text)
         except Exception:
@@ -83,9 +94,9 @@ def generate_advice():
         return jsonify({"advice": advice_json})
 
     except Exception as e:
-        print("OpenRouter API error:", e)
+        print("OpenRouter API error:", str(e))
         return jsonify({"error": "Failed to generate advice"}), 500
 
-# ------------------ Run Dev Server ------------------ #
+# ------------------ Run Server (for dev only) ------------------ #
 if __name__ == "__main__":
     app.run(debug=True)
