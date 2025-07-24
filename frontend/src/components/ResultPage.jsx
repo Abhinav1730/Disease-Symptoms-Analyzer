@@ -80,7 +80,6 @@ const ResultPage = ({ userData, results, plotBase64, onReset }) => {
         </ul>
       </div>
 
-      {/* Plot Image */}
       {plotBase64 && plotBase64.startsWith("data:image") && (
         <div className="mb-8 px-2 sm:px-4">
           <h3 className="text-lg sm:text-xl font-semibold text-orange-400 mb-3">
@@ -92,13 +91,15 @@ const ResultPage = ({ userData, results, plotBase64, onReset }) => {
               alt="Disease match chart"
               className="w-full max-w-3xl h-auto max-h-[400px] object-contain rounded-lg shadow-lg border border-orange-300"
               onError={(e) => {
-                console.error("Base64 image failed to load.");
+                console.error("Image failed to load:", e);
                 e.target.style.display = "none";
               }}
             />
           </div>
         </div>
       )}
+      console.log("Plot base64:", plotBase64?.substring(0, 100));
+
 
       {/* AI Advice Button */}
       <div className="text-center mb-6">
