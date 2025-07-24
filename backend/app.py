@@ -9,10 +9,10 @@ import ast
 
 load_dotenv()
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="static")  # Enable serving static files
 CORS(app)
 
-
+# ------------------ Analyze Endpoint ------------------ #
 @app.route("/analyze", methods=["POST"])
 def analyze():
     data = request.get_json()
@@ -29,16 +29,18 @@ def analyze():
     return jsonify({"results": results, "plotUrl": plot_url})
 
 
+# ------------------ Serve Plot from static/plots ------------------ #
 @app.route("/plot/<filename>")
 def get_plot(filename):
-    file_path = os.path.join("/tmp", filename)
+    plot_path = os.path.join(app.static_folder, "plots", filename)
 
-    if not os.path.isfile(file_path):
+    if not os.path.isfile(plot_path):
         return jsonify({"error": "Plot not found"}), 404
 
-    return send_file(file_path, mimetype="image/png")
+    return send_file(plot_path, mimetype="image/png")
 
 
+# ------------------ AI Advice Generator ------------------ #
 @app.route("/generate_advice", methods=["POST"])
 def generate_advice():
     data = request.get_json()
@@ -66,7 +68,7 @@ def generate_advice():
             headers={
                 "Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}",
                 "Content-Type": "application/json",
-                "HTTP-Referer": "https://your-frontend-url.vercel.app",  # Replace with your actual Vercel frontend URL
+                "HTTP-Referer": "https://disease-symptoms-analyzer.vercel.app",  # ✅ replace with your frontend URL
                 "X-Title": "DiseaseSymptomMapper",
             },
             data=json.dumps({
@@ -94,5 +96,6 @@ def generate_advice():
         return jsonify({"error": "Failed to generate advice"}), 500
 
 
+# ------------------ Run Server ------------------ #
 if __name__ == "__main__":
     app.run(debug=True)

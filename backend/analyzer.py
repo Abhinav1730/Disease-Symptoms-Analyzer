@@ -7,13 +7,14 @@ import uuid
 
 matplotlib.use("Agg")  # For non-GUI environments
 
-
 def analyzeSymptoms(userSymptoms):
     print("Symptoms Received:", userSymptoms)
 
+    # Load dataset
     df = pd.read_csv("data/disease_dataset_info.csv")
     userSymptoms = set([s.strip().lower() for s in userSymptoms])
 
+    # Scoring
     scores = {}
     for _, row in df.iterrows():
         disease = row["disease"]
@@ -23,7 +24,7 @@ def analyzeSymptoms(userSymptoms):
         score = matchCount / total if total else 0
         scores[disease] = round(score, 2)
 
-    # Sort and take top 6 non-zero scoring diseases
+    # Get top 6 diseases with non-zero scores
     topScores = {
         disease: score
         for disease, score in sorted(scores.items(), key=lambda x: x[1], reverse=True)
@@ -34,8 +35,12 @@ def analyzeSymptoms(userSymptoms):
     if not topScores:
         return {}, None
 
-    # ✅ Use /tmp for Render-safe storage
-    os.makedirs("/tmp", exist_ok=True)
+    # ✅ Save plot in a persistent folder: static/plots/
+    plot_dir = os.path.join("static", "plots")
+    os.makedirs(plot_dir, exist_ok=True)
+
+    filename = f"{uuid.uuid4().hex}.png"
+    path = os.path.join(plot_dir, filename)
 
     # Plotting
     diseases = list(topScores.keys())
@@ -62,9 +67,6 @@ def analyzeSymptoms(userSymptoms):
         )
 
     plt.tight_layout(pad=2)
-
-    filename = f"{uuid.uuid4().hex}.png"
-    path = os.path.join("/tmp", filename)
     plt.savefig(path, bbox_inches="tight", facecolor="white")
     plt.close()
 
