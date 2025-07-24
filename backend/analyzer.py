@@ -10,13 +10,11 @@ matplotlib.use("Agg")  # Ensures plot works in non-GUI environments
 def analyzeSymptoms(userSymptoms):
     print("Symptoms Received:", userSymptoms)
 
-    # Loading disease dataset
+    # Load disease dataset
     df = pd.read_csv("data/disease_dataset_info.csv")
 
-    # Normalizing user input symptoms
     userSymptoms = set(s.strip().lower() for s in userSymptoms)
 
-    # Match scoring logic
     scores = {}
     for _, row in df.iterrows():
         disease = row["disease"]
@@ -26,7 +24,6 @@ def analyzeSymptoms(userSymptoms):
         score = matchCount / total if total else 0
         scores[disease] = round(score, 2)
 
-    # Filtering top 6 diseases with non-zero match
     topScores = {
         disease: score
         for disease, score in sorted(scores.items(), key=lambda x: x[1], reverse=True)
@@ -34,18 +31,18 @@ def analyzeSymptoms(userSymptoms):
     }
     topScores = dict(list(topScores.items())[:6])
 
-    # Return early if no relevant matches
     if not topScores:
         return {}, None
 
-    # Saving plot to static/plots/
-    plot_dir = os.path.join("static", "plots")
+    # Save plot in static/plots (relative to root)
+    root_dir = os.path.dirname(os.path.abspath(__file__))  # Get app root
+    plot_dir = os.path.join(root_dir, "static", "plots")
     os.makedirs(plot_dir, exist_ok=True)
 
     filename = f"{uuid.uuid4().hex}.png"
     path = os.path.join(plot_dir, filename)
 
-    # Plotting top matched disease
+    # Plot
     diseases = list(topScores.keys())
     values = list(topScores.values())
 
@@ -56,21 +53,12 @@ def analyzeSymptoms(userSymptoms):
     ax.set_xlim(0, 1.0)
     ax.tick_params(axis="x", colors="black")
     ax.tick_params(axis="y", colors="black")
-    ax.invert_yaxis()  # Show highest matched disease on top
+    ax.invert_yaxis()
 
-    # Add score labels to bars
     for bar in bars:
         width = bar.get_width()
-        ax.text(
-            width + 0.01,
-            bar.get_y() + bar.get_height() / 2,
-            f"{width:.2f}",
-            va="center",
-            fontsize=10,
-            color="black",
-        )
+        ax.text(width + 0.01, bar.get_y() + bar.get_height() / 2, f"{width:.2f}", va="center", fontsize=10, color="black")
 
-    # Save the plot image
     plt.tight_layout(pad=2)
     plt.savefig(path, bbox_inches="tight", facecolor="white")
     plt.close()
