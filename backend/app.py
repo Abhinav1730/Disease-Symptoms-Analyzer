@@ -40,10 +40,10 @@ def analyze():
 # ------------------ /plot/<filename> Image Serving ------------------ #
 @app.route("/plot/<filename>")
 def get_plot(filename):
-    plots_dir = os.path.join(app.static_folder, "plots")
+    plots_dir = os.path.join(app.root_path, "static","plots")
     if not os.path.isfile(os.path.join(plots_dir, filename)):
         return jsonify({"error": "Plot not found"}), 404
-    return send_from_directory(plots_dir, filename, mimetype="image/png")
+    return send_from_directory(plots_dir, filename)
 
 # ------------------ /generate_advice Endpoint ------------------ #
 @app.route("/generate_advice", methods=["POST"])
