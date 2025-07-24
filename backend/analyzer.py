@@ -39,7 +39,7 @@ def analyzeSymptoms(userSymptoms):
         return {}, None
 
     # Saving plot to static/plots/
-    plot_dir = os.path.join(os.getcwd(), "static", "plots")
+    plot_dir = os.path.join("static", "plots")
     os.makedirs(plot_dir, exist_ok=True)
 
     filename = f"{uuid.uuid4().hex}.png"
