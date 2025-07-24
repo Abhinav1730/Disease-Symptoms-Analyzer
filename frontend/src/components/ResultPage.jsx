@@ -81,16 +81,21 @@ const ResultPage = ({ userData, results, plotBase64, onReset }) => {
       </div>
 
       {/* Plot Image */}
-      {plotBase64 && (
+      {plotBase64 && plotBase64.startsWith("data:image") && (
         <div className="mb-8 px-2 sm:px-4">
           <h3 className="text-lg sm:text-xl font-semibold text-orange-400 mb-3">
             Visual Analysis:
           </h3>
           <div className="flex justify-center items-center">
             <img
-              src={plotBase64}
+              src={`${plotBase64}`}
               alt="Disease match chart"
               className="w-full max-w-3xl h-auto max-h-[400px] object-contain rounded-lg shadow-lg border border-orange-300"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = "";
+                console.error("Failed to load base64 image.");
+              }}
             />
           </div>
         </div>
