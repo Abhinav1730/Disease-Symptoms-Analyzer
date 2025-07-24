@@ -5,7 +5,7 @@ import json
 import ast
 import requests
 from dotenv import load_dotenv
-from analyzer import analyzeSymptoms  # Your function must return: results_dict, base64_plot_string
+from analyzer import analyzeSymptoms  # Should return: results_dict, base64_plot_string
 
 # Load environment variables from .env
 load_dotenv()
@@ -27,7 +27,6 @@ def analyze():
         return jsonify({"error": "No symptoms provided"}), 400
 
     try:
-        # Call your analyzer function
         results, plot_base64 = analyzeSymptoms(symptoms)
 
         return jsonify({
@@ -52,7 +51,6 @@ def generate_advice():
         if not diseases:
             return jsonify({"error": "No diseases provided"}), 400
 
-        # Prompt for AI API
         prompt = (
             "Provide short but clear precautions and treatment solutions for each of the following diseases "
             "in the following JSON format (use double quotes for valid JSON):\n\n"
@@ -82,15 +80,15 @@ def generate_advice():
 
         if response.status_code != 200:
             print("OpenRouter returned non-200 status:", response.status_code)
+            print("Response body:", response.text)
             return jsonify({"error": "OpenRouter API failed"}), 500
 
         result = response.json()
-
         advice_text = result.get("choices", [{}])[0].get("message", {}).get("content", "")
+
         if not advice_text:
             return jsonify({"error": "No advice received from model"}), 500
 
-        # Try parsing the advice text as JSON
         try:
             advice_json = json.loads(advice_text)
         except Exception:
