@@ -1,16 +1,16 @@
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
-import requests
-from analyzer import analyzeSymptoms
-from dotenv import load_dotenv
 import os
 import json
 import ast
+import requests
+from dotenv import load_dotenv
+from analyzer import analyzeSymptoms
 
 # Load environment variables
 load_dotenv()
 
-# Create Flask app with static folder
+# Create Flask app and allow static file serving
 app = Flask(__name__, static_folder="static")
 CORS(app)
 
@@ -23,25 +23,27 @@ def analyze():
     if not symptoms:
         return jsonify({"error": "No symptoms provided"}), 400
 
+    # Ensure plots folder exists before calling analyzeSymptoms
+    os.makedirs(os.path.join(app.static_folder, "plots"), exist_ok=True)
+
     results, plot_filename = analyzeSymptoms(symptoms)
 
-    # Get base URL from env or current request
+    # Use provided BASE_URL or fallback to request host
     base_url = os.getenv("BASE_URL") or request.host_url.rstrip("/")
     plot_url = f"{base_url}/plot/{plot_filename}" if plot_filename else None
 
-    return jsonify({"results": results, "plotUrl": plot_url})
+    return jsonify({
+        "results": results,
+        "plotUrl": plot_url
+    })
 
-
-# ------------------ /plot/<filename> Image Endpoint ------------------ #
+# ------------------ /plot/<filename> Image Serving ------------------ #
 @app.route("/plot/<filename>")
 def get_plot(filename):
-    plot_path = os.path.join(app.static_folder, "plots", filename)
-
-    if not os.path.isfile(plot_path):
+    plots_dir = os.path.join(app.static_folder, "plots")
+    if not os.path.isfile(os.path.join(plots_dir, filename)):
         return jsonify({"error": "Plot not found"}), 404
-
-    return send_file(plot_path, mimetype="image/png")
-
+    return send_from_directory(plots_dir, filename, mimetype="image/png")
 
 # ------------------ /generate_advice Endpoint ------------------ #
 @app.route("/generate_advice", methods=["POST"])
@@ -52,7 +54,6 @@ def generate_advice():
     if not diseases:
         return jsonify({"error": "No diseases provided"}), 400
 
-    # Prompt to get advice in valid JSON format
     prompt = (
         "Provide short but clear precautions and treatment solutions for each of the following diseases "
         "in the following JSON format (use double quotes for valid JSON):\n\n"
@@ -72,7 +73,7 @@ def generate_advice():
             headers={
                 "Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}",
                 "Content-Type": "application/json",
-                "HTTP-Referer": "https://disease-symptoms-analyzer.vercel.app",  # ✅ Your frontend
+                "HTTP-Referer": "https://disease-symptoms-analyzer.vercel.app",
                 "X-Title": "DiseaseSymptomMapper",
             },
             data=json.dumps({
@@ -84,7 +85,6 @@ def generate_advice():
         result = response.json()
         advice_text = result["choices"][0]["message"]["content"]
 
-        # Trying to parsing advice safely
         try:
             advice_json = json.loads(advice_text)
         except Exception:
@@ -99,7 +99,6 @@ def generate_advice():
     except Exception as e:
         print("OpenRouter API error:", e)
         return jsonify({"error": "Failed to generate advice"}), 500
-
 
 # ------------------ Run Dev Server ------------------ #
 if __name__ == "__main__":
