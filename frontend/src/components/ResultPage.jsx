@@ -6,6 +6,9 @@ const ResultPage = ({ userData, results, plotBase64, onReset }) => {
   const [advice, setAdvice] = useState({});
   const [loadingAdvice, setLoadingAdvice] = useState(false);
 
+  // ✅ This is now outside of JSX
+  console.log("Plot base64:", plotBase64?.substring(0, 100));
+
   const generateAdvice = async () => {
     setLoadingAdvice(true);
     try {
@@ -18,7 +21,7 @@ const ResultPage = ({ userData, results, plotBase64, onReset }) => {
 
       let rawAdvice = response.data.advice;
 
-      // If it's wrapped in `raw` object, extract it
+      // If wrapped in `raw`, extract it
       if (typeof rawAdvice === "object" && rawAdvice.raw) {
         rawAdvice = rawAdvice.raw;
       }
@@ -80,11 +83,18 @@ const ResultPage = ({ userData, results, plotBase64, onReset }) => {
         </ul>
       </div>
 
+      {/* Visual Plot Image */}
       {plotBase64 && plotBase64.startsWith("data:image") && (
         <div className="mb-8 px-2 sm:px-4">
           <h3 className="text-lg sm:text-xl font-semibold text-orange-400 mb-3">
             Visual Analysis:
           </h3>
+
+          {/* Optional: Show part of base64 for debug */}
+          <p className="text-xs break-all text-white bg-gray-800 p-2 rounded mb-2">
+            {plotBase64.substring(0, 100)}...
+          </p>
+
           <div className="flex justify-center items-center">
             <img
               src={plotBase64}
@@ -98,8 +108,6 @@ const ResultPage = ({ userData, results, plotBase64, onReset }) => {
           </div>
         </div>
       )}
-      console.log("Plot base64:", plotBase64?.substring(0, 100));
-
 
       {/* AI Advice Button */}
       <div className="text-center mb-6">
