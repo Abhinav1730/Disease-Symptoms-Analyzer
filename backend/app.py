@@ -7,29 +7,32 @@ import os
 import json
 import ast
 
+# Load environment variables
 load_dotenv()
 
-app = Flask(__name__, static_folder="static")  # Enable serving static files
+# Create Flask app with static folder
+app = Flask(__name__, static_folder="static")
 CORS(app)
 
-# ------------------ Analyze Endpoint ------------------ #
+# ------------------ /analyze Endpoint ------------------ #
 @app.route("/analyze", methods=["POST"])
 def analyze():
     data = request.get_json()
     symptoms = data.get("symptoms", [])
 
     if not symptoms:
-        return jsonify({"error": "No Symptoms Provided"}), 400
+        return jsonify({"error": "No symptoms provided"}), 400
 
     results, plot_filename = analyzeSymptoms(symptoms)
 
+    # Get base URL from env or current request
     base_url = os.getenv("BASE_URL") or request.host_url.rstrip("/")
     plot_url = f"{base_url}/plot/{plot_filename}" if plot_filename else None
 
     return jsonify({"results": results, "plotUrl": plot_url})
 
 
-# ------------------ Serve Plot from static/plots ------------------ #
+# ------------------ /plot/<filename> Image Endpoint ------------------ #
 @app.route("/plot/<filename>")
 def get_plot(filename):
     plot_path = os.path.join(app.static_folder, "plots", filename)
@@ -40,7 +43,7 @@ def get_plot(filename):
     return send_file(plot_path, mimetype="image/png")
 
 
-# ------------------ AI Advice Generator ------------------ #
+# ------------------ /generate_advice Endpoint ------------------ #
 @app.route("/generate_advice", methods=["POST"])
 def generate_advice():
     data = request.get_json()
@@ -49,6 +52,7 @@ def generate_advice():
     if not diseases:
         return jsonify({"error": "No diseases provided"}), 400
 
+    # Prompt to get advice in valid JSON format
     prompt = (
         "Provide short but clear precautions and treatment solutions for each of the following diseases "
         "in the following JSON format (use double quotes for valid JSON):\n\n"
@@ -68,7 +72,7 @@ def generate_advice():
             headers={
                 "Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}",
                 "Content-Type": "application/json",
-                "HTTP-Referer": "https://disease-symptoms-analyzer.vercel.app",  # ✅ replace with your frontend URL
+                "HTTP-Referer": "https://disease-symptoms-analyzer.vercel.app",  # ✅ Your frontend
                 "X-Title": "DiseaseSymptomMapper",
             },
             data=json.dumps({
@@ -80,6 +84,7 @@ def generate_advice():
         result = response.json()
         advice_text = result["choices"][0]["message"]["content"]
 
+        # Trying to parsing advice safely
         try:
             advice_json = json.loads(advice_text)
         except Exception:
@@ -96,6 +101,6 @@ def generate_advice():
         return jsonify({"error": "Failed to generate advice"}), 500
 
 
-# ------------------ Run Server ------------------ #
+# ------------------ Run Dev Server ------------------ #
 if __name__ == "__main__":
     app.run(debug=True)
